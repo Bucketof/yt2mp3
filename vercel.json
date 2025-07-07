@@ -4,7 +4,12 @@
     "src": "api/app.py",
     "use": "@vercel/python",
     "config": {
-      "includeFiles": ["**/*.py"]
+      "maxLambdaSize": "50mb",
+      "includeFiles": ["**/*.py", "ffmpeg"]
     }
+  }],
+  "routes": [{
+    "src": "/(.*)",
+    "dest": "api/app.py"
   }]
 }
