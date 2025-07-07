@@ -1,5 +1,7 @@
 from flask import Flask, request, send_file
+import yt_dlp
 import os
+import tempfile
 
 app = Flask(__name__)
 
@@ -9,20 +11,35 @@ def convert():
         url = request.form.get('url')
         if not url:
             return "Please enter a YouTube URL", 400
-        
-        # Simple system call that works on Vercel
-        os.system(f"python -m yt_dlp -x --audio-format mp3 {url}")
-        
-        # Find the downloaded file
-        for file in os.listdir():
-            if file.endswith('.mp3'):
-                return send_file(file, as_attachment=True)
-        
-        return "Conversion failed", 500
-    
+
+        # Use temporary directory (Vercel requires this)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': os.path.join(tmpdir, '%(title)s.%(ext)s'),
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                }],
+                'quiet': True,
+                'no_warnings': True,
+            }
+
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    filename = ydl.prepare_filename(info).replace('.webm', '.mp3').replace('.m4a', '.mp3')
+                    
+                    if os.path.exists(filename):
+                        return send_file(filename, as_attachment=True)
+                    return "File not created", 500
+                    
+            except Exception as e:
+                return f"Error: {str(e)}", 500
+
     return '''
     <form method="post">
-        <input type="text" name="url" placeholder="Paste YouTube URL">
+        <input type="text" name="url" placeholder="Paste YouTube URL" required>
         <button type="submit">Convert</button>
     </form>
     '''
