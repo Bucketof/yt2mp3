@@ -5,8 +5,7 @@
     "use": "@vercel/python",
     "config": {
       "maxLambdaSize": "50mb",
-      "includeFiles": ["**/*.py", "ffmpeg"],
-      "installCommand": "pip install -r requirements.txt && apt-get update && apt-get install -y aria2"
+      "installCommand": "pip install -r requirements.txt && wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && tar xf ffmpeg-release-amd64-static.tar.xz && mv ffmpeg-*/ffmpeg ."
     }
   }],
   "routes": [{
