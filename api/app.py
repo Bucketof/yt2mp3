@@ -12,7 +12,6 @@ def convert():
         if not url:
             return "Please enter a YouTube URL", 400
 
-        # Use temporary directory (Vercel requires this)
         with tempfile.TemporaryDirectory() as tmpdir:
             ydl_opts = {
                 'format': 'bestaudio/best',
@@ -21,8 +20,15 @@ def convert():
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
                 }],
+                # 👇 Add these lines for faster downloads
+                'external_downloader': 'aria2c',
+                'external_downloader_args': ['-x', '16', '-k', '1M'],
+                # 👆 Uses 16 connections and 1MB chunks
                 'quiet': True,
                 'no_warnings': True,
+                # Timeout protection
+                'socket_timeout': 5,
+                'retries': 3
             }
 
             try:
